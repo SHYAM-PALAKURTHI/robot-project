@@ -1,0 +1,38 @@
+name: pipeline for creating docker image for cart
+
+on:
+  push:
+    branches:
+      - 'main/'
+    paths:
+      - 'cart/**'
+  workflow_dispatch: #for manual trigger
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Show working directory and files
+        run: |
+          pwd
+          ls -lart
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_ID }}
+          password: ${{ secrets.DOCKER_KEY }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          tags: palakuws/robo-shop:cart-latest
+          context: ./cart 
+          file: ./cart/Dockerfile 
