@@ -3,7 +3,7 @@ name: pipeline for creating docker image for cart
 on:
   push:
     branches:
-      - 'main/'
+      - 'main/**'
     paths:
       - 'cart/**'
   workflow_dispatch: #for manual trigger
