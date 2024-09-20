@@ -2,13 +2,16 @@ name: pipeline for creating docker image for cart
 
 on:
   push:
-    branches:
-      - 'main'
     paths:
       - 'cart/**'
-  workflow_dispatch: #for manual trigger
+      #- 'catalouge/**'
+  workflow_dispatch: 
+
 jobs:
-  build:
+  cart_service:
+    name: ci service for cart service
+    if: ${{ github.event.head_commit.modified }} contains 'cart/'
+
     runs-on: ubuntu-latest
 
     steps:
@@ -19,6 +22,22 @@ jobs:
         run: |
           pwd
           ls -lart
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          path: cart/
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '14'
+
+      - name: Install dependencies and build Microservice 1
+        run: |
+          cd cart/
+          npm install
+          npm run build
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -34,5 +53,5 @@ jobs:
         with:
           push: true
           tags: palakuws/robo-shop:cart-latest
-          context: ./cart 
-          file: ./cart/Dockerfile 
+          context: ./cart
+          file: ./cart/Dockerfile
