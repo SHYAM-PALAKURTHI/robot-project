@@ -1,5 +1,5 @@
 const instana = require('@instana/collector');
-// init tracings
+// init tracingss
 // MUST be done before loading anything else!
 instana({
     tracing: {
