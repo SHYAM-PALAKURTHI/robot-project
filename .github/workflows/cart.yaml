@@ -68,4 +68,4 @@ jobs:
           context: ./${{ matrix.service }}
           file: ./${{ matrix.service }}/Dockerfile
           push: true
-          tags: palakuws/robo-shop:${{ matrix.service }}:latest
+          tags: palakuws/robo-shop:${{ matrix.service }}-latest
