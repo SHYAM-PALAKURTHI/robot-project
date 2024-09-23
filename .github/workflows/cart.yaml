@@ -6,10 +6,13 @@ on:
       - 'main'
     paths:
       - 'cart/**'
-      #- 'catalouge/**'
+      - 'catalouge/**'
   workflow_dispatch: #for manual trigger
 jobs:
-  build:
+ cart_service:
+    name: ci service for cart service
+    if: ${{ github.event.head_commit.modified }} contains 'cart/'
+    
     runs-on: ubuntu-latest
 
     steps:
@@ -37,3 +40,4 @@ jobs:
           tags: palakuws/robo-shop:cart-latest
           context: ./cart 
           file: ./cart/Dockerfile
+    
