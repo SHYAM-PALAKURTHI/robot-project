@@ -1,4 +1,4 @@
-name: Pipeline for creating Docker images
+name: Build and Push Docker Images
 
 on:
   push:
@@ -8,92 +8,64 @@ on:
       - 'cart/**'
       - 'catalogue/**'
       - 'dispatch/**'
-      - 'mongo/**'
-      - 'mysql/**'
       - 'payment/**'
       - 'ratings/**'
       - 'user/**'
       - 'web/**'
-  workflow_dispatch: # For manual trigger
+      - 'mongo/**'
+      - 'mysql/**'
+  workflow_dispatch:
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - cart
+          - catalogue
+          - dispatch
+          - payment
+          - ratings
+          - user
+          - web
+          - mongo
+          - mysql
 
     steps:
-    #universal checkout stage
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 2  # Fetches enough history to compare the previous commit
+          fetch-depth: 2 
 
-      # Universal Docker Login Stage
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKERHUB_ID }}
-          password: ${{ secrets.DOCKER_KEY }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Cart Service
-      - name: Determine if cart service was modified
-        id: check_cart_changes
+      - name: Determine if ${{ matrix.service }} service was modified
+        id: check_changes
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "run_cart=true" >> $GITHUB_ENV
-          elif git diff --name-only HEAD^ HEAD | grep -q '^cart/'; then
-            echo "run_cart=true" >> $GITHUB_ENV
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "run_service=true" >> $GITHUB_ENV
           else
-            echo "run_cart=false" >> $GITHUB_ENV
+            git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q "^${{ matrix.service }}/"
+            if [ $? -eq 0 ]; then
+              echo "run_service=true" >> $GITHUB_ENV
+            else
+              echo "run_service=false" >> $GITHUB_ENV
+            fi
           fi
 
-      - name: Build and push Cart Docker image
-        if: env.run_cart == 'true'
+      - name: Build and push ${{ matrix.service }} Docker image
+        if: env.run_service == 'true'
         uses: docker/build-push-action@v4
         with:
+          context: ./${{ matrix.service }}
+          file: ./${{ matrix.service }}/Dockerfile
           push: true
-          tags: palakuws/robo-shop:cart-latest
-          context: ./cart
-          file: ./cart/Dockerfile
-
-      # Catalogue Service
-      - name: Determine if catalogue service was modified
-        id: check_catalogue_changes
-        run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "run_catalogue=true" >> $GITHUB_ENV
-          elif git diff --name-only HEAD^ HEAD | grep -q '^catalogue/'; then
-            echo "run_catalogue=true" >> $GITHUB_ENV
-          else
-            echo "run_catalogue=false" >> $GITHUB_ENV
-          fi
-
-      - name: Build and push Catalogue Docker image
-        if: env.run_catalogue == 'true'
-        uses: docker/build-push-action@v4
-        with:
-          push: true
-          tags: palakuws/robo-shop:catalogue-latest
-          context: ./catalogue
-          file: ./catalogue/Dockerfile
-
-      # Dispatch Service
-      - name: Determine if dispatch service was modified
-        id: check_dispatch_changes
-        run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "run_dispatch=true" >> $GITHUB_ENV
-          elif git diff --name-only HEAD^ HEAD | grep -q '^dispatch/'; then
-            echo "run_dispatch=true" >> $GITHUB_ENV
-          else
-            echo "run_dispatch=false" >> $GITHUB_ENV
-          fi
-
-      - name: Build and push dispatch Docker image
-        if: env.run_dispatch == 'true'
-        uses: docker/build-push-action@v4
-        with:
-          push: true
-          tags: palakuws/robo-shop:dispatch-${{ github.run_number }}
-          context: ./dispatch
-          file: ./dispatch/Dockerfile
-                
+          tags: your-dockerhub-username/${{ matrix.service }}:latest
