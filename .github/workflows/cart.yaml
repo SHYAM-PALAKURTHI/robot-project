@@ -1,4 +1,4 @@
-name: pipeline for creating docker image for cart
+name: Pipeline for creating Docker images for cart and catalogue
 
 on:
   push:
@@ -6,12 +6,13 @@ on:
       - 'main'
     paths:
       - 'cart/**'
-      - 'catalouge/**'
-  workflow_dispatch: #for manual trigger
+      - 'catalogue/**'
+  workflow_dispatch: # For manual trigger
+
 jobs:
- cart_service:
-    name: ci service for cart service
-    if: ${{ github.event.head_commit.modified }} contains 'cart/'
+  cart_service:
+    name: CI service for cart service
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.event.head_commit.modified contains 'cart/')
     
     runs-on: ubuntu-latest
 
@@ -38,6 +39,37 @@ jobs:
         with:
           push: true
           tags: palakuws/robo-shop:cart-latest
-          context: ./cart 
+          context: ./cart
           file: ./cart/Dockerfile
+
+  catalogue_service:
+    name: CI service for catalogue service
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.event.head_commit.modified contains 'catalogue/')
     
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Show working directory and files
+        run: |
+          pwd
+          ls -lart
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_ID }}
+          password: ${{ secrets.DOCKER_KEY }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          tags: palakuws/robo-shop:catalogue-latest
+          context: ./catalogue
+          file: ./catalogue/Dockerfile
