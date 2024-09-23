@@ -12,7 +12,7 @@ on:
 jobs:
   cart_service:
     name: CI service for cart service
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.event.head_commit.modified contains 'cart/')
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && 'cart/' in github.event.head_commit.modified)
     
     runs-on: ubuntu-latest
 
@@ -44,7 +44,7 @@ jobs:
 
   catalogue_service:
     name: CI service for catalogue service
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.event.head_commit.modified contains 'catalogue/')
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && 'catalogue/' in github.event.head_commit.modified)
     
     runs-on: ubuntu-latest
 
