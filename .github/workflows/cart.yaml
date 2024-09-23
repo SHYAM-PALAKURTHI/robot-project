@@ -96,3 +96,4 @@ jobs:
           tags: palakuws/robo-shop:dispatch-${{ github.run_number }}
           context: ./dispatch
           file: ./dispatch/Dockerfile
+                ./dispatch/docker-compose.yaml
