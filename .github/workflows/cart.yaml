@@ -1,4 +1,4 @@
-name: Pipeline for creating Docker images
+name: Pipeline for creating Docker images for cart and catalogue
 
 on:
   push:
@@ -14,9 +14,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Universal Checkout Step
+      # Checkout with fetch-depth 2 to get the last two commits
       - name: Checkout Code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 2  # Fetches enough history to compare the previous commit
 
       # Universal Docker Login Step
       - name: Login to Docker Hub
@@ -31,7 +33,7 @@ jobs:
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "run_cart=true" >> $GITHUB_ENV
-          elif git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q '^cart/'; then
+          elif git diff --name-only HEAD^ HEAD | grep -q '^cart/'; then
             echo "run_cart=true" >> $GITHUB_ENV
           else
             echo "run_cart=false" >> $GITHUB_ENV
@@ -52,7 +54,7 @@ jobs:
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "run_catalogue=true" >> $GITHUB_ENV
-          elif git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q '^catalogue/'; then
+          elif git diff --name-only HEAD^ HEAD | grep -q '^catalogue/'; then
             echo "run_catalogue=true" >> $GITHUB_ENV
           else
             echo "run_catalogue=false" >> $GITHUB_ENV
