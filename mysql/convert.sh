@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Convert cities CSV file to SQL
+# Convert cities CSV file to SQL 
 
 if [ -z "$1" ]
 then
