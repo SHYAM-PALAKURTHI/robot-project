@@ -1,4 +1,5 @@
 //
+
 // Products
 //
 db = db.getSiblingDB('catalogue');
