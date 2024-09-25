@@ -36,7 +36,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0 
+          fetch-depth: 2  # Ensure that it fetches the last 2 commits for git diff
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -50,19 +50,16 @@ jobs:
       - name: Determine if ${{ matrix.service }} service was modified
         id: check_changes
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "run_service=true" >> $GITHUB_ENV
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "run_${{ matrix.service }}=true" >> $GITHUB_ENV
+          elif git diff --name-only HEAD^ HEAD | grep -q '^${{ matrix.service }}/'; then
+            echo "run_${{ matrix.service }}=true" >> $GITHUB_ENV
           else
-            git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q "^${{ matrix.service }}/"
-            if [ $? -eq 0 ]; then
-              echo "run_service=true" >> $GITHUB_ENV
-            else
-              echo "run_service=false" >> $GITHUB_ENV
-            fi
+            echo "run_${{ matrix.service }}=false" >> $GITHUB_ENV
           fi
 
       - name: Build and push ${{ matrix.service }} Docker image
-        if: env.run_service == 'true'
+        if: env.run_${{ matrix.service }} == 'true'
         uses: docker/build-push-action@v4
         with:
           context: ./${{ matrix.service }}
