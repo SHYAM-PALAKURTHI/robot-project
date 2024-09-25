@@ -24,7 +24,7 @@ resource "google_container_cluster" "primary" {
   }
 
   workload_identity_config {
-    workload_pool = "istioproject.svc.id.goog"
+    workload_pool = "istioproject-435421.svc.id.goog"
   }
 
   ip_allocation_policy {
