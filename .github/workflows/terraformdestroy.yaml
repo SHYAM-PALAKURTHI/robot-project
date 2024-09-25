@@ -1,0 +1,34 @@
+name: Terraform Destroy
+
+on:
+  workflow_dispatch: # Allows you to manually trigger the destroy workflow
+
+jobs:
+  terraform-destroy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Terraform
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.3  # Adjust the Terraform version as per your setup
+
+      # Step 3: Initialize Terraform
+      - name: Terraform Init
+        working-directory: ./gke-terraform/
+        env: 
+          GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}  # Path to your Terraform directory
+        run: terraform init
+
+      # Step 4: Destroy Terraform resources
+      - name: Terraform Destroy
+        working-directory: ./gke-terraform/
+        env: 
+          GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }} # Path to your Terraform directory
+        run: terraform destroy -auto-approve
+        
