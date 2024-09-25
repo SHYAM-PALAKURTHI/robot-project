@@ -1,10 +1,10 @@
 name: 'Terraform files for creating the gcp private env'
 
 on:
-  push:
-    branches: [ "main" ]
-    paths:
-      - gke-terraform/**
+  #push:
+   # branches: [ "main" ]
+    #paths:
+     # - gke-terraform/**
   workflow_dispatch:
 jobs:
   terraform:
